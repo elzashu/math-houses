@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Домики — состав числа</title>
+
+<!-- PWA-настройки -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e17055">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Домики">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+  }
+  body {
+    font-family: 'Comic Sans MS', system-ui, sans-serif;
+    background: linear-gradient(160deg, #ffeaa7, #fab1a0);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8px;
+  }
+  .card {
+    background: white;
+    border-radius: 22px;
+    padding: 16px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+    text-align: center;
+  }
+  h1 { font-size: 17px; color: #e17055; margin-bottom: 10px; }
+
+  .stars { font-size: 18px; margin-bottom: 6px; min-height: 22px; }
+
+  /* Домик */
+  .house {
+    display: inline-block;
+    margin: 10px auto 6px;
+    padding: 0;
+    border-radius: 16px;
+    background: #fff5e6;
+    box-shadow: 0 6px 20px rgba(225, 112, 85, 0.2);
+    overflow: hidden;
+  }
+  .roof {
+    background: linear-gradient(135deg, #e17055, #fab1a0);
+    color: white;
+    font-size: 60px;
+    font-weight: bold;
+    padding: 18px 60px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .floor {
+    display: flex;
+    gap: 0;
+  }
+  .cell {
+    width: 130px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    font-weight: bold;
+    color: #2d3436;
+    background: #fff;
+    border-top: 4px solid #e17055;
+  }
+  .cell.given {
+    background: #fff5e6;
+    color: #e17055;
+  }
+  .cell.empty {
+    color: #0984e3;
+  }
+  .cell.empty.correct {
+    animation: pulse 0.5s;
+    background: #d4f5e9;
+    color: #00b894;
+  }
+  .cell.empty.wrong {
+    animation: shake 0.4s;
+    background: #ffe0e0;
+    color: #d63031;
+  }
+  .cell:first-child { border-right: 4px solid #e17055; }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .feedback {
+    font-size: 20px;
+    min-height: 26px;
+    margin: 8px 0;
+    font-weight: bold;
+  }
+  .feedback.ok { color: #00b894; }
+  .feedback.no { color: #e17055; }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+    min-height: 32px;
+    align-items: center;
+  }
+  .dot-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 110px;
+    justify-content: center;
+  }
+  .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #74b9ff;
+  }
+  .dot.plus { background: #ffeaa7; }
+  .dot.mystery {
+    background: #dfe6e9;
+    border: 2px dashed #b2bec3;
+  }
+
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin-top: 10px;
+  }
+  .keypad button {
+    font-size: 26px;
+    font-weight: bold;
+    padding: 10px 0;
+    border: none;
+    border-radius: 12px;
+    background: #dfe6e9;
+    color: #2d3436;
+    cursor: pointer;
+    transition: transform 0.08s, background 0.15s;
+    font-family: inherit;
+    touch-action: manipulation;
+  }
+  .keypad button:active { transform: scale(0.94); background: #b2bec3; }
+  .keypad button.del { background: #fab1a0; }
+  .keypad button.ok  { background: #55efc4; }
+
+  .actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .actions button {
+    font-size: 14px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 10px;
+    background: #e17055;
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .actions button:active { transform: scale(0.96); }
+
+  @media (max-height: 700px) {
+    .roof { font-size: 48px; padding: 12px 40px; }
+    .cell { width: 100px; height: 84px; font-size: 44px; }
+    .keypad button { font-size: 22px; padding: 8px 0; }
+    h1 { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🏠 Домики — состав числа</h1>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="house">
+    <div class="roof" id="roof">7</div>
+    <div class="floor">
+      <div class="cell given" id="cellLeft">2</div>
+      <div class="cell empty" id="cellRight">?</div>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+  <div class="dots" id="dots"></div>
+
+  <div class="keypad">
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button class="del" onclick="del()">⌫</button>
+    <button onclick="press('0')">0</button>
+    <button class="ok" onclick="check()">✓</button>
+  </div>
+
+  <div class="actions">
+    <button onclick="hint()">💡 Подсказка</button>
+    <button onclick="newTask()">🔄 Пропустить</button>
+  </div>
+</div>
+
+<script>
+let roof, given, correct, input = "", score = 0;
+const RETRY_AFTER = 4;
+let retryQueue = [];
+
+// ============ ЛОГИКА ============
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateTask() {
+  // Число на крыше от 2 до 10
+  const r = randInt(2, 10);
+  // Одно из слагаемых от 1 до (r-1)
+  const g = randInt(1, r - 1);
+  return { roof: r, given: g, correct: r - g };
+}
+
+function showTask(task) {
+  roof = task.roof;
+  given = task.given;
+  correct = task.correct;
+
+  document.getElementById("roof").textContent = roof;
+
+  // Случайно: заполнена левая или правая клетка
+  const filledIsLeft = Math.random() < 0.5;
+  const leftCell = document.getElementById("cellLeft");
+  const rightCell = document.getElementById("cellRight");
+
+  if (filledIsLeft) {
+    leftCell.className = "cell given";
+    leftCell.textContent = given;
+    rightCell.className = "cell empty";
+    rightCell.textContent = "?";
+    // given — это левая клетка
+  } else {
+    leftCell.className = "cell empty";
+    leftCell.textContent = "?";
+    rightCell.className = "cell given";
+    rightCell.textContent = given;
+  }
+
+  input = "";
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("dots").innerHTML = "";
+}
+
+function updateEmptyCell() {
+  const leftCell = document.getElementById("cellLeft");
+  const rightCell = document.getElementById("cellRight");
+  const emptyCell = leftCell.classList.contains("empty") ? leftCell : rightCell;
+  emptyCell.textContent = input || "?";
+}
+
+function press(n) {
+  if (input.length >= 2) return;
+  input += n;
+  updateEmptyCell();
+}
+
+function del() {
+  input = input.slice(0, -1);
+  updateEmptyCell();
+}
+
+function check() {
+  if (input === "") return;
+  const val = parseInt(input, 10);
+  const fb = document.getElementById("feedback");
+  const leftCell = document.getElementById("cellLeft");
+  const rightCell = document.getElementById("cellRight");
+  const emptyCell = leftCell.classList.contains("empty") ? leftCell : rightCell;
+
+  if (val === correct) {
+    score++;
+    emptyCell.classList.add("correct");
+    fb.textContent = ["Молодец! 🎉", "Верно! ⭐", "Супер! 🌟", "Отлично! 👏"][Math.floor(Math.random()*4)];
+    fb.className = "feedback ok";
+    updateStars();
+    setTimeout(() => {
+      emptyCell.classList.remove("correct");
+      newTask();
+    }, 900);
+  } else {
+    emptyCell.classList.add("wrong");
+    fb.textContent = "Не подходит, попробуй ещё 🙂";
+    fb.className = "feedback no";
+
+    // Добавить в очередь повторов
+    const alreadyQueued = retryQueue.some(t => t.roof === roof && t.given === given);
+    if (!alreadyQueued) {
+      retryQueue.push({ roof: roof, given: given, correct: correct, wait: RETRY_AFTER });
+    } else {
+      const t = retryQueue.find(t => t.roof === roof && t.given === given);
+      if (t) t.wait = RETRY_AFTER;
+    }
+
+    input = "";
+    setTimeout(() => {
+      emptyCell.classList.remove("wrong");
+      updateEmptyCell();
+    }, 800);
+  }
+}
+
+function newTask() {
+  // Уменьшаем таймеры
+  for (let i = 0; i < retryQueue.length; i++) {
+    retryQueue[i].wait--;
+  }
+
+  // Проверяем, есть ли готовый к показу
+  const readyIndex = retryQueue.findIndex(t => t.wait <= 0);
+  if (readyIndex !== -1) {
+    const task = retryQueue.splice(readyIndex, 1)[0];
+    showTask(task);
+  } else {
+    showTask(generateTask());
+  }
+}
+
+function hint() {
+  const dots = document.getElementById("dots");
+  dots.innerHTML = "";
+
+  // Показываем: given синих + ? жёлтых (пустых с пунктиром) = roof
+  const g1 = document.createElement("div"); g1.className = "dot-group";
+  for (let i = 0; i < given; i++) {
+    const d = document.createElement("div"); d.className = "dot"; g1.appendChild(d);
+  }
+  dots.appendChild(g1);
+
+  const plus = document.createElement("div");
+  plus.style.fontSize = "26px";
+  plus.style.color = "#636e72";
+  plus.textContent = "+";
+  dots.appendChild(plus);
+
+  const g2 = document.createElement("div"); g2.className = "dot-group";
+  for (let i = 0; i < correct; i++) {
+    const d = document.createElement("div");
+    d.className = "dot mystery";  // пунктирная — «столько нужно»
+    g2.appendChild(d);
+  }
+  dots.appendChild(g2);
+}
+
+function updateStars() {
+  let s = "";
+  for (let i = 0; i < Math.min(score, 15); i++) s += "⭐";
+  document.getElementById("stars").textContent = s;
+}
+
+// Запуск
+newTask();
+
+// Service Worker для PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</body>
+</html>
